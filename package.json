@@ -12,12 +12,23 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "sio2.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sio2-sidebar",
+          "title": "SIO2",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "sio2-sidebar": [
+        {
+          "id": "sio2-problems",
+          "name": "Zadania"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
