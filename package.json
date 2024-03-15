@@ -28,6 +28,25 @@
           "name": "Zadania"
         }
       ]
+    },
+    "commands": [
+      {
+        "command": "sio2.openProblemContent",
+        "title": "Open Problem Content",
+        "icon": {
+          "light": "assets/pdf.svg",
+          "dark": "assets/pdf.svg"
+        }
+      }
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "sio2.openProblemContent",
+          "when": "view == sio2-problems && viewItem == problem",
+          "group": "inline"
+        }
+      ]
     }
   },
   "scripts": {

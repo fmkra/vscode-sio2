@@ -45,24 +45,19 @@ class ProblemItem {
                 label: this.problemId,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
+            contextValue: "problem",
         };
     }
 }
 exports.ProblemItem = ProblemItem;
 class ContestItem {
     contestId;
-    problems;
     constructor(contestId) {
         this.contestId = contestId;
-        this.problems = null;
     }
     async getChildren() {
-        await new Promise((r) => setTimeout(r, 3000));
-        if (!this.problems) {
-            const problemList = await (0, api_1.fetchProblems)(this.contestId);
-            this.problems = problemList.map((problem) => new ProblemItem(this, problem));
-        }
-        return this.problems;
+        const problemList = await (0, api_1.fetchProblems)(this.contestId);
+        return problemList.map((problem) => new ProblemItem(this, problem));
     }
     getParent() {
         return undefined;
@@ -77,16 +72,9 @@ class ContestItem {
     }
 }
 exports.ContestItem = ContestItem;
-let contests;
-async function getContests() {
-    if (!contests) {
-        contests = await (0, api_1.fetchContests)();
-    }
-    return contests;
-}
 function treeDataProvider() {
     return {
-        getChildren: (element) => element ? element.getChildren() : getContests(),
+        getChildren: (element) => element ? element.getChildren() : (0, api_1.fetchContests)(),
         getParent: (element) => element.getParent(),
         getTreeItem: (element) => element.getTreeItem(),
     };
