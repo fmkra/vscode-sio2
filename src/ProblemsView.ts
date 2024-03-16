@@ -1,8 +1,12 @@
 import * as vscode from "vscode";
-import { fetchContests, fetchProblems } from "./api";
+import Api from "./Api";
 
 export class ProblemItem {
-    constructor(readonly contest: ContestItem, readonly problemId: string) {}
+    constructor(
+        private api: Api,
+        readonly contest: ContestItem,
+        readonly problemId: string
+    ) {}
 
     getChildren() {
         return [];
@@ -26,13 +30,15 @@ export class ProblemItem {
 export class ContestItem {
     contestId: string;
 
-    constructor(contestId: string) {
+    constructor(private api: Api, contestId: string) {
         this.contestId = contestId;
     }
 
     async getChildren() {
-        const problemList = await fetchProblems(this.contestId);
-        return problemList.map((problem) => new ProblemItem(this, problem));
+        const problemList = await this.api.getProblems(this.contestId);
+        return problemList.map(
+            (problem) => new ProblemItem(this.api, this, problem)
+        );
     }
 
     getParent() {
@@ -51,21 +57,27 @@ export class ContestItem {
 
 type TreeItem = ProblemItem | ContestItem;
 
-function treeDataProvider(): vscode.TreeDataProvider<TreeItem> {
-    return {
-        getChildren: (element) =>
-            element ? element.getChildren() : fetchContests(),
-        getParent: (element) => element.getParent(),
-        getTreeItem: (element) => element.getTreeItem(),
-    };
-}
-
 export class ProblemsView {
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, private api: Api) {
         const view = vscode.window.createTreeView("sio2-problems", {
-            treeDataProvider: treeDataProvider(),
+            treeDataProvider: this.treeDataProvider(),
             showCollapseAll: true,
         });
         context.subscriptions.push(view);
+    }
+
+    treeDataProvider(): vscode.TreeDataProvider<TreeItem> {
+        const getContests = async () => {
+            const contests = await this.api.getContests();
+            return contests.map(
+                (contest) => new ContestItem(this.api, contest)
+            );
+        };
+        return {
+            getChildren: (element) =>
+                element ? element.getChildren() : getContests(),
+            getParent: (element) => element.getParent(),
+            getTreeItem: (element) => element.getTreeItem(),
+        };
     }
 }

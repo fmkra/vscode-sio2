@@ -25,11 +25,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProblemsView = exports.ContestItem = exports.ProblemItem = void 0;
 const vscode = __importStar(require("vscode"));
-const api_1 = require("./api");
 class ProblemItem {
+    api;
     contest;
     problemId;
-    constructor(contest, problemId) {
+    constructor(api, contest, problemId) {
+        this.api = api;
         this.contest = contest;
         this.problemId = problemId;
     }
@@ -51,13 +52,15 @@ class ProblemItem {
 }
 exports.ProblemItem = ProblemItem;
 class ContestItem {
+    api;
     contestId;
-    constructor(contestId) {
+    constructor(api, contestId) {
+        this.api = api;
         this.contestId = contestId;
     }
     async getChildren() {
-        const problemList = await (0, api_1.fetchProblems)(this.contestId);
-        return problemList.map((problem) => new ProblemItem(this, problem));
+        const problemList = await this.api.getProblems(this.contestId);
+        return problemList.map((problem) => new ProblemItem(this.api, this, problem));
     }
     getParent() {
         return undefined;
@@ -72,20 +75,26 @@ class ContestItem {
     }
 }
 exports.ContestItem = ContestItem;
-function treeDataProvider() {
-    return {
-        getChildren: (element) => element ? element.getChildren() : (0, api_1.fetchContests)(),
-        getParent: (element) => element.getParent(),
-        getTreeItem: (element) => element.getTreeItem(),
-    };
-}
 class ProblemsView {
-    constructor(context) {
+    api;
+    constructor(context, api) {
+        this.api = api;
         const view = vscode.window.createTreeView("sio2-problems", {
-            treeDataProvider: treeDataProvider(),
+            treeDataProvider: this.treeDataProvider(),
             showCollapseAll: true,
         });
         context.subscriptions.push(view);
+    }
+    treeDataProvider() {
+        const getContests = async () => {
+            const contests = await this.api.getContests();
+            return contests.map((contest) => new ContestItem(this.api, contest));
+        };
+        return {
+            getChildren: (element) => element ? element.getChildren() : getContests(),
+            getParent: (element) => element.getParent(),
+            getTreeItem: (element) => element.getTreeItem(),
+        };
     }
 }
 exports.ProblemsView = ProblemsView;

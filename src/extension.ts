@@ -1,16 +1,21 @@
 import * as vscode from "vscode";
-import { ContestItem, ProblemsView } from "./ProblemsView";
+import { ProblemsView } from "./ProblemsView";
+import Api from "./Api";
 
 export function activate(context: vscode.ExtensionContext) {
-    new ProblemsView(context);
+    const api = new Api(context);
+    new ProblemsView(context, api);
 
     let disposable = vscode.commands.registerCommand(
         "sio2.openProblemContent",
         async (context) => {
             const contestId = context.contest.contestId;
             const problemId = context.problemId;
+            // vscode.window.showQuickPick(["option1", "option 2"]);
+            const x = await vscode.window.showInputBox({});
             vscode.window.showInformationMessage(
-                `Opening problem ${contestId} ${problemId}`
+                x ?? "nothing"
+                // `Opening problem ${contestId} ${problemId}`
             );
         }
     );

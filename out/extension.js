@@ -22,16 +22,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
 const ProblemsView_1 = require("./ProblemsView");
+const Api_1 = __importDefault(require("./Api"));
 function activate(context) {
-    new ProblemsView_1.ProblemsView(context);
+    const api = new Api_1.default(context);
+    new ProblemsView_1.ProblemsView(context, api);
     let disposable = vscode.commands.registerCommand("sio2.openProblemContent", async (context) => {
         const contestId = context.contest.contestId;
         const problemId = context.problemId;
-        vscode.window.showInformationMessage(`Opening problem ${contestId} ${problemId}`);
+        // vscode.window.showQuickPick(["option1", "option 2"]);
+        const x = await vscode.window.showInputBox({});
+        vscode.window.showInformationMessage(x ?? "nothing"
+        // `Opening problem ${contestId} ${problemId}`
+        );
     });
     context.subscriptions.push(disposable);
 }
