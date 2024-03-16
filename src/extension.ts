@@ -3,8 +3,10 @@ import { ProblemsView } from "./ProblemsView";
 import Api from "./Api";
 
 export function activate(context: vscode.ExtensionContext) {
-    const api = new Api(context);
-    new ProblemsView(context, api);
+    const apiUrlDidChangeEventEmitter = new vscode.EventEmitter<void>();
+
+    const api = new Api(context, apiUrlDidChangeEventEmitter);
+    new ProblemsView(context, api, apiUrlDidChangeEventEmitter.event);
 
     let disposable = vscode.commands.registerCommand(
         "sio2.openProblemContent",

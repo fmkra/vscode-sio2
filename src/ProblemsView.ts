@@ -58,7 +58,11 @@ export class ContestItem {
 type TreeItem = ProblemItem | ContestItem;
 
 export class ProblemsView {
-    constructor(context: vscode.ExtensionContext, private api: Api) {
+    constructor(
+        context: vscode.ExtensionContext,
+        private api: Api,
+        private dataChangedEvent: vscode.Event<void>
+    ) {
         const view = vscode.window.createTreeView("sio2-problems", {
             treeDataProvider: this.treeDataProvider(),
             showCollapseAll: true,
@@ -78,6 +82,7 @@ export class ProblemsView {
                 element ? element.getChildren() : getContests(),
             getParent: (element) => element.getParent(),
             getTreeItem: (element) => element.getTreeItem(),
+            onDidChangeTreeData: this.dataChangedEvent,
         };
     }
 }

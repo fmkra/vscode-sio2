@@ -31,11 +31,13 @@ const vscode = __importStar(require("vscode"));
 const ProblemsView_1 = require("./ProblemsView");
 const Api_1 = __importDefault(require("./Api"));
 function activate(context) {
-    const api = new Api_1.default(context);
-    new ProblemsView_1.ProblemsView(context, api);
-    let disposable = vscode.commands.registerCommand("sio2.openProblemContent", async (context) => {
-        const contestId = context.contest.contestId;
-        const problemId = context.problemId;
+    const apiUrlDidChangeEventEmitter = new vscode.EventEmitter();
+    const api = new Api_1.default(context, apiUrlDidChangeEventEmitter);
+    new ProblemsView_1.ProblemsView(context, api, apiUrlDidChangeEventEmitter.event);
+    let disposable = vscode.commands.registerCommand("sio2.openProblemContent", async (cx) => {
+        await context.globalState.update("sio2.apiUrl", undefined);
+        // const contestId = cx.contest.contestId;
+        // const problemId = cx.problemId;
         // vscode.window.showQuickPick(["option1", "option 2"]);
         const x = await vscode.window.showInputBox({});
         vscode.window.showInformationMessage(x ?? "nothing"

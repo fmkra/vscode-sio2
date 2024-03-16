@@ -35,6 +35,10 @@
         "title": "SIO2: Change API URL"
       },
       {
+        "command": "sio2.resetApiUrls",
+        "title": "SIO2: Reset all saved API URLs"
+      },
+      {
         "command": "sio2.openProblemContent",
         "title": "SIO2: Open Problem Content",
         "icon": {
