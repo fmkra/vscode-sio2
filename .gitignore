@@ -6,5 +6,5 @@ Thumbs.db
 tsconfig.lsif.json
 *.lsif
 *.db
-node_modules
+node_modules/
 out

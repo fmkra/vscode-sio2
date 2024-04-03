@@ -95,7 +95,7 @@ class Api {
                     await this.updateApiUrl();
                 }
                 else {
-                    const url = qp.selectedItems[0].label;
+                    const url = qp.selectedItems[0].detail;
                     this.apiUrl = url;
                     await this.context.globalState.update("sio2.apiUrl", url);
                     this.onApiUrlUpdate.fire();
@@ -123,18 +123,26 @@ class Api {
         }
         return this.apiUrl;
     }
+    token = `c218b616558cd6f14aa78f1885da00449a4c60a8`;
     async getContests() {
         const url = await this.getApiUrl();
-        // await new Promise((r) => setTimeout(r, 5000));
-        return [url + "contest 1", "contest 2"];
+        const res = await fetch(`${url}/api/contest_list`, {
+            headers: {
+                Accept: "application/json",
+                Authorization: `Token ${this.token}`,
+            },
+        });
+        const contests = await res.json();
+        return contests.map((contest) => contest.id);
     }
     async getProblems(contestId) {
         const url = await this.getApiUrl();
-        // await new Promise((r) => setTimeout(r, 5000));
-        if (contestId === "contest 2")
+        if (contestId === "contest 2") {
             return [url + "prob 1", "prob 2", "prob 3"];
-        else
+        }
+        else {
             return ["prob a", url + "prob b"];
+        }
     }
 }
 exports.default = Api;
