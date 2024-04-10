@@ -1,7 +1,18 @@
 import * as vscode from "vscode";
 
+interface StoredUrl {
+    name: string;
+    url: string;
+    token?: string;
+}
+
+interface ApiData {
+    url: string;
+    token?: string;
+}
+
 export default class Api {
-    apiUrl?: string;
+    apiData?: ApiData;
 
     constructor(
         private context: vscode.ExtensionContext,
@@ -23,8 +34,11 @@ export default class Api {
                     "sio2.apiSavedUrls",
                     undefined
                 );
-                await this.context.globalState.update("sio2.apiUrl", undefined);
-                this.apiUrl = undefined;
+                await this.context.globalState.update(
+                    "sio2.apiData",
+                    undefined
+                );
+                this.apiData = undefined;
                 this.onApiUrlUpdate.fire();
             }
         );
@@ -35,11 +49,11 @@ export default class Api {
         const _savedUrls = await this.context.globalState.get(
             "sio2.apiSavedUrls"
         );
-        let savedUrls: [string, string][];
+        let savedUrls: StoredUrl[];
         if (_savedUrls === undefined || typeof _savedUrls !== "string") {
             savedUrls = [
-                ["mimuw", "https://sio2.mimuw.edu.pl"],
-                ["szkopul", "https://szkopul.edu.pl"],
+                { name: "mimuw", url: "https://sio2.mimuw.edu.pl" },
+                { name: "szkopul", url: "https://szkopul.edu.pl" },
             ];
             await this.context.globalState.update(
                 "sio2.apiSavedUrls",
@@ -57,7 +71,7 @@ export default class Api {
                 ),
             },
         ];
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<ApiData>((resolve, reject) => {
             const qp = vscode.window.createQuickPick();
             qp.title = "Select which SIO2 API URL you want to use";
             const addItem = {
@@ -65,8 +79,8 @@ export default class Api {
             };
             const qpItems: vscode.QuickPickItem[] = [
                 ...savedUrls.map((url) => ({
-                    label: url[0],
-                    detail: url[1],
+                    label: url.name,
+                    detail: url.url,
                     buttons,
                 })),
                 {
@@ -88,21 +102,35 @@ export default class Api {
                         value: "https://",
                         valueSelection: [-1, -1],
                     });
+                    const token = await vscode.window.showInputBox({
+                        title: "Enter your API token",
+                        placeHolder: "Token",
+                    });
                     await this.context.globalState.update(
                         "sio2.apiSavedUrls",
-                        JSON.stringify([[name, url], ...savedUrls])
+                        JSON.stringify([{ name, url, token }, ...savedUrls])
                     );
                     await this.updateApiUrl();
                 } else {
-                    const url = qp.selectedItems[0].label;
-
-                    this.apiUrl = url;
-                    await this.context.globalState.update("sio2.apiUrl", url);
+                    const selectedItem = qp.selectedItems[0];
+                    const itemIndex = qpItems.indexOf(selectedItem);
+                    this.apiData = savedUrls[itemIndex];
+                    if (this.apiData.token === undefined) {
+                        const token = await vscode.window.showInputBox({
+                            title: "Enter your API token",
+                            placeHolder: "Token",
+                        });
+                        this.apiData.token = token;
+                    }
+                    await this.context.globalState.update(
+                        "sio2.apiData",
+                        JSON.stringify(this.apiData)
+                    );
 
                     this.onApiUrlUpdate.fire();
 
                     qp.dispose();
-                    resolve(url);
+                    resolve(this.apiData);
                 }
             });
             qp.onDidHide(() => {
@@ -121,27 +149,60 @@ export default class Api {
         });
     }
 
-    private async getApiUrl() {
-        if (this.apiUrl === undefined) {
-            this.apiUrl = await this.context.globalState.get("sio2.apiUrl");
+    private async getApi() {
+        if (this.apiData === undefined) {
+            const apiData = (await this.context.globalState.get(
+                "sio2.apiData"
+            )) as string | undefined;
+            this.apiData =
+                apiData === undefined ? undefined : JSON.parse(apiData);
         }
-        if (this.apiUrl === undefined) {
+        if (this.apiData === undefined) {
             await this.updateApiUrl();
         }
-        return this.apiUrl;
+        return this.apiData;
     }
 
     async getContests() {
-        const url = await this.getApiUrl();
-        // await new Promise((r) => setTimeout(r, 5000));
-        return [url + "contest 1", "contest 2"];
+        const api = await this.getApi();
+        if (api === undefined) {
+            return [];
+            // TODO: show some message that you have to select an API
+        }
+        const { url, token } = api;
+        vscode.window.showInformationMessage(`${url} ${token}`);
+        if (token === undefined || token === "") {
+            throw new Error(`No token provided for ${url}`);
+        }
+        const res = await fetch(`${url}/api/contest_list`, {
+            headers: {
+                Accept: "application/json",
+                Authorization: `Token ${token}`,
+            },
+        });
+        if (res.status !== 200) {
+            throw new Error(`Failed to fetch contests: ${res.statusText}`);
+        }
+        const contests: any = await res.json();
+        return contests.map((contest: any) => contest.id) as string[];
     }
 
     async getProblems(contestId: string) {
-        const url = await this.getApiUrl();
-        // await new Promise((r) => setTimeout(r, 5000));
-        if (contestId === "contest 2")
-            return [url + "prob 1", "prob 2", "prob 3"];
-        else return ["prob a", url + "prob b"];
+        const api = await this.getApi();
+        if (api === undefined) {
+            return [];
+            // TODO: show some message that you have to select an API
+        }
+        const res = await fetch(`${api.url}/api/c/${contestId}/problem_list/`, {
+            headers: {
+                Accept: "application/json",
+                Authorization: `Token ${api.token}`,
+            },
+        });
+        if (res.status !== 200) {
+            throw new Error(`Failed to fetch problems: ${res.statusText}`);
+        }
+        const problems: any = await res.json();
+        return problems.map((problem: any) => problem.short_name) as string[];
     }
 }

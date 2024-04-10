@@ -55,7 +55,28 @@ export class ContestItem {
     }
 }
 
-type TreeItem = ProblemItem | ContestItem;
+export class ErrorItem {
+    constructor(private detail: string) {}
+
+    getChildren() {
+        return [];
+    }
+
+    getParent() {
+        return undefined;
+    }
+
+    getTreeItem() {
+        return {
+            label: {
+                label: this.detail,
+            },
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+        };
+    }
+}
+
+type TreeItem = ProblemItem | ContestItem | ErrorItem;
 
 export class ProblemsView {
     constructor(
@@ -72,10 +93,14 @@ export class ProblemsView {
 
     treeDataProvider(): vscode.TreeDataProvider<TreeItem> {
         const getContests = async () => {
-            const contests = await this.api.getContests();
-            return contests.map(
-                (contest) => new ContestItem(this.api, contest)
-            );
+            try {
+                const contests = await this.api.getContests();
+                return contests.map(
+                    (contest) => new ContestItem(this.api, contest)
+                );
+            } catch (e) {
+                return [new ErrorItem(e?.toString() ?? "Unknown error")];
+            }
         };
         return {
             getChildren: (element) =>
