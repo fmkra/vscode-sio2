@@ -205,4 +205,12 @@ export default class Api {
         const problems: any = await res.json();
         return problems.map((problem: any) => problem.short_name) as string[];
     }
+
+    async getProblemUrl(contestId: string, problemId: string) {
+        const api = await this.getApi();
+        if (api === undefined) {
+            throw new Error("select api"); // TODO: change error message
+        }
+        return `${api.url}/c/${contestId}/p/${problemId}`;
+    }
 }

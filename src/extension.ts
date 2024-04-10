@@ -27,7 +27,23 @@ export function activate(context: vscode.ExtensionContext) {
 
     let d = vscode.commands.registerCommand(
         "sio2.openProblemContent",
-        async () => {
+        async (context) => {
+            let contestId = context?.contest?.contestId;
+            let problemId = context?.problemId;
+
+            if (!contestId) {
+                contestId = await vscode.window.showInputBox({
+                    title: "Provide contest id",
+                });
+            }
+            if (!problemId) {
+                problemId = await vscode.window.showInputBox({
+                    title: "Provide problem id",
+                });
+            }
+
+            const url = await api.getProblemUrl(contestId, problemId);
+
             const panel = vscode.window.createWebviewPanel(
                 "pdfView", // Identifies the type of the webview. Used internally
                 "PDF View", // Title of the panel displayed to the user
@@ -39,9 +55,6 @@ export function activate(context: vscode.ExtensionContext) {
             );
 
             // Specify the URL of the PDF here
-            const pdfUrl =
-                "https://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20040540535/U/D20040535Lj.pdf";
-
             async function getFileData() {
                 // vscode.window.showInformationMessage("starting fetching");
                 // const fileDownloader = await FileDownloaderApi.getApi();
@@ -51,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
                 //     context
                 // );
                 // vscode.window.showInformationMessage(file.toString());
-                const res = await fetch(pdfUrl);
+                const res = await fetch(url);
                 const fileData = new Uint8Array(await res.arrayBuffer());
                 // let headers = "";
                 // for (const h of res.headers.entries()) {
@@ -154,6 +167,7 @@ function getWebviewContent(getFileData: any, panel: any, extUri: any) {
     panel.webview.options = {
         enableScripts: true,
     };
+    // TODO: fix a problem here with panel.webview.as...
     panel.webview.html = `<!DOCTYPE html>
     <html>
     
