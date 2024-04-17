@@ -32,8 +32,8 @@ export default class PdfViewer {
                 const pdfUrl = await api.getProblemUrl(contestId, problemId);
 
                 const panel = vscode.window.createWebviewPanel(
-                    "pdfView",
-                    "PDF View",
+                    problemId,
+                    problemId + ".pdf",
                     vscode.ViewColumn.One,
                     {
                         enableScripts: true,
