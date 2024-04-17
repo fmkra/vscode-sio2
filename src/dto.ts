@@ -6,8 +6,14 @@ export interface Contest {
 export interface Problem {
     id: number;
     short_name: string;
+    full_name: string;
     submissions_limit: number;
-    needs_rejudge: boolean;
+    submissions_left: number | null;
     round: number;
-    problem: number;
+    user_result: {
+        score: string;
+        status: unknown; // TODO: fix
+    };
+    can_submit: boolean;
+    statement_ext: ".zip" | ".pdf" | ".ps" | ".html" | ".txt" | null;
 }

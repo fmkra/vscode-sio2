@@ -1,14 +1,15 @@
 import * as vscode from "vscode";
 import Api from "./api";
 import JSZip from "jszip";
+import { ProblemItem } from "./ProblemsView";
 
 export default class PdfViewer {
     constructor(context: vscode.ExtensionContext, api: Api) {
         const openProblemContent = vscode.commands.registerCommand(
             "sio2.openProblemContent",
-            async (context) => {
-                let contestId = context?.contest?.contestId;
-                let problemId = context?.problemId;
+            async (context: ProblemItem | undefined) => {
+                let contestId = context?.contest?.contest?.id;
+                let problemId = context?.problem?.short_name;
 
                 if (!contestId) {
                     contestId = await vscode.window.showInputBox({
@@ -19,6 +20,13 @@ export default class PdfViewer {
                     problemId = await vscode.window.showInputBox({
                         title: "Provide problem id",
                     });
+                }
+
+                if (!contestId || !problemId) {
+                    vscode.window.showErrorMessage(
+                        "You must provide contest and problem id"
+                    );
+                    return;
                 }
 
                 const pdfUrl = await api.getProblemUrl(contestId, problemId);

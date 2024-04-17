@@ -20,7 +20,7 @@ export class ProblemItem {
     getTreeItem() {
         return {
             label: {
-                label: this.problem.short_name,
+                label: this.problem.full_name,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             contextValue: "problem",
