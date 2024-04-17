@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
 import Api from "./api";
+import * as dto from "./dto";
 
 export class ProblemItem {
     constructor(
         private api: Api,
         readonly contest: ContestItem,
-        readonly problemId: string
+        readonly problem: dto.Problem
     ) {}
 
     getChildren() {
@@ -19,7 +20,7 @@ export class ProblemItem {
     getTreeItem() {
         return {
             label: {
-                label: this.problemId,
+                label: this.problem.short_name,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             contextValue: "problem",
@@ -28,14 +29,10 @@ export class ProblemItem {
 }
 
 export class ContestItem {
-    contestId: string;
-
-    constructor(private api: Api, contestId: string) {
-        this.contestId = contestId;
-    }
+    constructor(private api: Api, readonly contest: dto.Contest) {}
 
     async getChildren() {
-        const problemList = await this.api.getProblems(this.contestId);
+        const problemList = await this.api.getProblems(this.contest.id);
         return problemList.map(
             (problem) => new ProblemItem(this.api, this, problem)
         );
@@ -48,7 +45,7 @@ export class ContestItem {
     getTreeItem(): vscode.TreeItem {
         return {
             label: {
-                label: this.contestId,
+                label: this.contest.name,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         };

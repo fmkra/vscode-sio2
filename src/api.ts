@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as dto from "./dto";
 
 interface StoredUrl {
     name: string;
@@ -187,8 +188,7 @@ export default class Api {
         if (res.status !== 200) {
             throw new Error(`Failed to fetch contests: ${res.statusText}`);
         }
-        const contests: any = await res.json();
-        return contests.map((contest: any) => contest.id) as string[];
+        return (await res.json()) as dto.Contest[];
     }
 
     async getProblems(contestId: string) {
@@ -206,8 +206,7 @@ export default class Api {
         if (res.status !== 200) {
             throw new Error(`Failed to fetch problems: ${res.statusText}`);
         }
-        const problems: any = await res.json();
-        return problems.map((problem: any) => problem.short_name) as string[];
+        return (await res.json()) as dto.Problem[];
     }
 
     async getProblemUrl(contestId: string, problemId: string) {
