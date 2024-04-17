@@ -49,12 +49,25 @@
           "light": "assets/pdf.svg",
           "dark": "assets/pdf.svg"
         }
+      },
+      {
+        "command": "sio2.uploadProblemSolution",
+        "title": "SIO2: Upload Problem Solution",
+        "icon": {
+          "light": "assets/upload.svg",
+          "dark": "assets/upload.svg"
+        }
       }
     ],
     "menus": {
       "view/item/context": [
         {
           "command": "sio2.openProblemContent",
+          "when": "view == sio2-problems && viewItem == problem",
+          "group": "inline"
+        },
+        {
+          "command": "sio2.uploadProblemSolution",
           "when": "view == sio2-problems && viewItem == problem",
           "group": "inline"
         }

@@ -216,4 +216,12 @@ export default class Api {
         }
         return `${api.url}/c/${contestId}/p/${problemId}`;
     }
+
+    async uploadProblemSolution() {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const text = editor.document.getText();
+            console.log(text);
+        }
+    }
 }
