@@ -45,6 +45,10 @@ export default class Api {
         context.subscriptions.push(resetApiUrls);
     }
 
+    getExtensionUri() {
+        return this.context.extensionUri;
+    }
+
     async updateApiUrl() {
         const _savedUrls = await this.context.globalState.get(
             "sio2.apiSavedUrls"

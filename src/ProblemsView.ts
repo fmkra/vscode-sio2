@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import Api from "./Api";
+import Api from "./api";
 
 export class ProblemItem {
     constructor(
