@@ -217,11 +217,57 @@ export default class Api {
         return `${api.url}/c/${contestId}/p/${problemId}`;
     }
 
-    async uploadProblemSolution() {
+    async uploadProblemSolution(contestId: string, problemId: string) {
+        const api = await this.getApi();
+        if (api === undefined) {
+            throw new Error("select api"); // TODO: change error message
+        }
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             const text = editor.document.getText();
-            console.log(text);
+            const filename = editor.document.fileName.split("/").at(-1)!;
+            if (filename.indexOf(".") === -1) {
+                vscode.window.showErrorMessage(
+                    "Uploading problem solution failed.\nFile must have an extension."
+                );
+                return;
+            }
+
+            if (
+                !(await vscode.window.showInformationMessage(
+                    `Do you want to submit ${filename} as your solution to ${problemId}?`,
+                    { modal: true },
+                    { title: "Submit" }
+                ))
+            ) {
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", new Blob([text]), filename);
+
+            let payload = {
+                method: "POST",
+                headers: {
+                    Authorization: `Token ${api.token}`,
+                },
+                body: formData,
+            };
+
+            const res = await fetch(
+                `${api.url}/api/c/${contestId}/submit/${problemId}`,
+                payload
+            );
+            if (res.status !== 200) {
+                vscode.window.showErrorMessage(
+                    `Uploading problem solution failed.\n${await res.text()}`
+                );
+                return;
+            }
+            const submitId = await res.text();
+            vscode.window.showInformationMessage(
+                `Problem solution uploaded successfully.\nSubmit ID: ${submitId}`
+            );
         }
     }
 }
