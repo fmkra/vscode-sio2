@@ -2,31 +2,6 @@ import * as vscode from "vscode";
 import Api from "./api";
 import * as dto from "./dto";
 
-class TodoDecorationProvider implements vscode.FileDecorationProvider {
-    provideFileDecoration(
-        uri: vscode.Uri,
-        token: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.FileDecoration> {
-        // https://code.visualstudio.com/api/references/theme-color#lists-and-trees
-        if (uri.scheme === "foo") {
-            console.log("URII", uri);
-            const points = new URLSearchParams(uri.query).get("points");
-            return {
-                color: new vscode.ThemeColor(
-                    points === "100"
-                        ? "terminal.ansiBrightGreen"
-                        : points === "0"
-                        ? "terminal.ansiRed"
-                        : "terminal.ansiYellow"
-                ),
-            };
-        }
-
-        return undefined;
-    }
-}
-vscode.window.registerFileDecorationProvider(new TodoDecorationProvider());
-
 export interface TreeDataSubProvider<T> {
     getTreeItem(element: T): vscode.TreeItem | Thenable<vscode.TreeItem>;
     getChildren(element?: T): vscode.ProviderResult<T[]>;
@@ -49,19 +24,29 @@ export class SubmitItem implements TreeDataSubProvider<TreeItem> {
     }
 
     getTreeItem() {
+        let points = parseInt(this.submit[1]);
+        if (points < 0 || points > 100) {
+            points = NaN;
+        }
         return {
             label: {
                 label: this.submit[0],
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             contextValue: "submit",
-            resourceUri: vscode.Uri.parse("foo://bar?points=" + this.submit[1]),
-            iconPath: vscode.Uri.joinPath(
-                this.extensionUri,
-                "assets",
-                "points",
-                this.submit[1] + ".svg"
-            ),
+            ...(Number.isNaN(points)
+                ? {}
+                : {
+                      resourceUri: vscode.Uri.parse(
+                          `submitdecorationprovider://${points}`
+                      ),
+                      iconPath: vscode.Uri.joinPath(
+                          this.extensionUri,
+                          "assets",
+                          "points",
+                          `${points}.svg`
+                      ),
+                  }),
         };
     }
 }
@@ -157,6 +142,9 @@ export class ProblemsView {
         private dataChangedEvent: vscode.Event<void>,
         private extensionUri: vscode.Uri
     ) {
+        vscode.window.registerFileDecorationProvider(
+            new SubmitDecorationProvider()
+        );
         const view = vscode.window.createTreeView("sio2-problems", {
             treeDataProvider: this.treeDataProvider(),
             showCollapseAll: true,
@@ -183,5 +171,27 @@ export class ProblemsView {
             getTreeItem: (element) => element.getTreeItem(),
             onDidChangeTreeData: this.dataChangedEvent,
         };
+    }
+}
+
+class SubmitDecorationProvider implements vscode.FileDecorationProvider {
+    provideFileDecoration(
+        uri: vscode.Uri,
+        token: vscode.CancellationToken
+    ): vscode.ProviderResult<vscode.FileDecoration> {
+        if (uri.scheme === "submitdecorationprovider") {
+            const points = uri.authority;
+            // TODO: define custom colors
+            return {
+                color: new vscode.ThemeColor(
+                    points === "100"
+                        ? "terminal.ansiBrightGreen"
+                        : points === "0"
+                        ? "terminal.ansiRed"
+                        : "terminal.ansiYellow"
+                ),
+            };
+        }
+        return undefined;
     }
 }
