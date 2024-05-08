@@ -7,7 +7,12 @@ export function activate(context: vscode.ExtensionContext) {
     const apiUrlDidChangeEventEmitter = new vscode.EventEmitter<void>();
 
     const api = new Api(context, apiUrlDidChangeEventEmitter);
-    new ProblemsView(context, api, apiUrlDidChangeEventEmitter.event);
+    new ProblemsView(
+        context,
+        api,
+        apiUrlDidChangeEventEmitter.event,
+        context.extensionUri
+    );
     new PdfViewer(context, api);
 
     const uploadProblemSolution = vscode.commands.registerCommand(

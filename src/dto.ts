@@ -15,5 +15,13 @@ export interface Problem {
         status: unknown; // TODO: fix
     };
     can_submit: boolean;
-    statement_ext: ".zip" | ".pdf" | ".ps" | ".html" | ".txt" | null;
+    statement_extension: ".zip" | ".pdf" | ".ps" | ".html" | ".txt" | null;
+}
+
+export interface Submit {
+    // TODO: change after adding endpoint
+    id: number;
+    date: string;
+    status: string;
+    score: string;
 }
