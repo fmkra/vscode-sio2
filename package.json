@@ -3,6 +3,7 @@
   "displayName": "sio2",
   "description": "Integration with SIO2 API",
   "version": "0.0.1",
+  "repository": "https://github.com/fmkra/vscode-sio2",
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -57,6 +58,11 @@
           "light": "assets/upload.svg",
           "dark": "assets/upload.svg"
         }
+      },
+      {
+        "command": "sio2.refreshContests",
+        "title": "SIO2: Refresh Contests",
+        "icon": "$(extensions-refresh)"
       }
     ],
     "menus": {
@@ -70,6 +76,11 @@
           "command": "sio2.uploadProblemSolution",
           "when": "view == sio2-problems && viewItem == problem",
           "group": "inline"
+        },
+        {
+          "command": "sio2.refreshContests",
+          "when": "view == sio2-problems && viewItem == error",
+          "group": "inline"
         }
       ]
     }
@@ -80,7 +91,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "vscode:package": "pnpm vsce package --no-dependencies",
+    "vscode:publish": "pnpm vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
@@ -94,7 +107,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@microsoft/vscode-file-downloader-api": "^1.0.1",
     "jszip": "^3.10.1"
   },
   "extensionDependencies": [

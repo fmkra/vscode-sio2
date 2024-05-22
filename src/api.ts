@@ -165,17 +165,15 @@ export default class Api {
         if (this.apiData === undefined) {
             await this.updateApiUrl();
         }
+        if (this.apiData === undefined) {
+            throw new Error("No API selected");
+        }
         return this.apiData;
     }
 
     async getContests() {
         const api = await this.getApi();
-        if (api === undefined) {
-            return [];
-            // TODO: show some message that you have to select an API
-        }
         const { url, token } = api;
-        vscode.window.showInformationMessage(`${url} ${token}`);
         if (token === undefined || token === "") {
             throw new Error(`No token provided for ${url}`);
         }
@@ -193,10 +191,6 @@ export default class Api {
 
     async getProblems(contestId: string) {
         const api = await this.getApi();
-        if (api === undefined) {
-            return [];
-            // TODO: show some message that you have to select an API
-        }
         const res = await fetch(`${api.url}/api/c/${contestId}/problem_list/`, {
             headers: {
                 Accept: "application/json",
@@ -211,17 +205,11 @@ export default class Api {
 
     async getProblemUrl(contestId: string, problemId: string) {
         const api = await this.getApi();
-        if (api === undefined) {
-            throw new Error("select api"); // TODO: change error message
-        }
         return `${api.url}/c/${contestId}/p/${problemId}`;
     }
 
     async uploadProblemSolution(contestId: string, problemId: string) {
         const api = await this.getApi();
-        if (api === undefined) {
-            throw new Error("select api"); // TODO: change error message
-        }
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             const text = editor.document.getText();

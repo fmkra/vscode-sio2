@@ -129,6 +129,7 @@ export class ErrorItem {
                 label: this.detail,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
+            contextValue: "error",
         };
     }
 }
