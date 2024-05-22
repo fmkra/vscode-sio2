@@ -19,9 +19,12 @@ export interface Problem {
 }
 
 export interface Submit {
-    // TODO: change after adding endpoint
     id: number;
+    score: string | null;
     date: string;
-    status: string;
-    score: string;
+}
+
+export interface SubmitsInfo {
+    submissions: Submit[];
+    is_truncated: boolean;
 }

@@ -11,7 +11,8 @@ export interface TreeDataSubProvider<T> {
 export class SubmitItem implements TreeDataSubProvider<TreeItem> {
     constructor(
         readonly problem: ProblemItem,
-        readonly submit: [string, string],
+        readonly date: string,
+        readonly score: string | null,
         readonly extensionUri: vscode.Uri
     ) {}
 
@@ -24,48 +25,51 @@ export class SubmitItem implements TreeDataSubProvider<TreeItem> {
     }
 
     getTreeItem() {
-        let points = parseInt(this.submit[1]);
+        let points = parseInt(this.score ?? "");
         if (points < 0 || points > 100) {
             points = NaN;
         }
+        const pointsStr = Number.isNaN(points) ? "null" : points.toString();
         return {
             label: {
-                label: this.submit[0],
+                label: this.date,
             },
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             contextValue: "submit",
-            ...(Number.isNaN(points)
-                ? {}
-                : {
-                      resourceUri: vscode.Uri.parse(
-                          `submitdecorationprovider://${points}`
-                      ),
-                      iconPath: vscode.Uri.joinPath(
-                          this.extensionUri,
-                          "assets",
-                          "points",
-                          `${points}.svg`
-                      ),
-                  }),
+            resourceUri: vscode.Uri.parse(
+                `submitdecorationprovider://${pointsStr}`
+            ),
+            iconPath: vscode.Uri.joinPath(
+                this.extensionUri,
+                "assets",
+                "points",
+                `${pointsStr}.svg`
+            ),
         };
     }
 }
 
 export class ProblemItem implements TreeDataSubProvider<TreeItem> {
     constructor(
+        readonly api: Api,
         readonly contest: ContestItem,
         readonly problem: dto.Problem,
         readonly extensionUri: vscode.Uri
     ) {}
 
-    getChildren() {
-        const submitList = [
-            ["Zadanie 1", "100"],
-            ["Zadanie 2", "63"],
-            ["Zadanie 3", "0"],
-        ] as [string, string][]; //await this.api.getProblems(this.contest.id);
-        return submitList.map(
-            (submit) => new SubmitItem(this, submit, this.extensionUri)
+    async getChildren() {
+        const submitList = await this.api.getSubmissions(
+            this.contest.contest.id,
+            this.problem.short_name
+        );
+        return submitList.submissions.map(
+            (submit) =>
+                new SubmitItem(
+                    this,
+                    submit.date,
+                    submit.score,
+                    this.extensionUri
+                )
         );
     }
 
@@ -94,7 +98,8 @@ export class ContestItem implements TreeDataSubProvider<TreeItem> {
     async getChildren() {
         const problemList = await this.api.getProblems(this.contest.id);
         return problemList.map(
-            (problem) => new ProblemItem(this, problem, this.extensionUri)
+            (problem) =>
+                new ProblemItem(this.api, this, problem, this.extensionUri)
         );
     }
 
@@ -189,6 +194,8 @@ class SubmitDecorationProvider implements vscode.FileDecorationProvider {
                         ? "terminal.ansiBrightGreen"
                         : points === "0"
                         ? "terminal.ansiRed"
+                        : points === "null"
+                        ? ""
                         : "terminal.ansiYellow"
                 ),
             };

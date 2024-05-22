@@ -203,6 +203,23 @@ export default class Api {
         return (await res.json()) as dto.Problem[];
     }
 
+    async getSubmissions(contestId: string, problemId: string) {
+        const api = await this.getApi();
+        const res = await fetch(
+            `${api.url}/api/c/${contestId}/problem_submissions/${problemId}/`,
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Token ${api.token}`,
+                },
+            }
+        );
+        if (res.status !== 200) {
+            throw new Error(`Failed to fetch problems: ${res.statusText}`);
+        }
+        return (await res.json()) as dto.SubmitsInfo;
+    }
+
     async getProblemUrl(contestId: string, problemId: string) {
         const api = await this.getApi();
         return `${api.url}/c/${contestId}/p/${problemId}`;
