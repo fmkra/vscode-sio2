@@ -4,16 +4,11 @@ import * as dto from "./dto";
 interface StoredUrl {
     name: string;
     url: string;
-    token?: string;
-}
-
-interface ApiData {
-    url: string;
-    token?: string;
+    token: string;
 }
 
 export default class Api {
-    apiData?: ApiData;
+    apiData?: StoredUrl;
 
     constructor(
         private context: vscode.ExtensionContext,
@@ -57,8 +52,8 @@ export default class Api {
         let savedUrls: StoredUrl[];
         if (_savedUrls === undefined || typeof _savedUrls !== "string") {
             savedUrls = [
-                { name: "mimuw", url: "https://sio2.mimuw.edu.pl" },
-                { name: "szkopul", url: "https://szkopul.edu.pl" },
+                { name: "mimuw", url: "https://sio2.mimuw.edu.pl", token: "" },
+                { name: "szkopul", url: "https://szkopul.edu.pl", token: "" },
             ];
             await this.context.globalState.update(
                 "sio2.apiSavedUrls",
@@ -77,18 +72,21 @@ export default class Api {
                 iconPath: deleteIcon,
             },
         ];
-        return new Promise<ApiData>((resolve, reject) => {
+        return new Promise<StoredUrl>((resolve, reject) => {
             const qp = vscode.window.createQuickPick();
             qp.title = "Select which SIO2 API URL you want to use";
             const addItem = {
                 label: "Add new URL to the list",
             };
             const qpItems: vscode.QuickPickItem[] = [
-                ...savedUrls.map((url) => ({
-                    label: url.name,
-                    detail: url.url,
-                    buttons,
-                })),
+                ...savedUrls.map(
+                    (url) =>
+                        ({
+                            label: url.name,
+                            detail: url.url,
+                            buttons,
+                        } satisfies vscode.QuickPickItem)
+                ),
                 {
                     label: "",
                     kind: vscode.QuickPickItemKind.Separator,
@@ -121,6 +119,10 @@ export default class Api {
                         title: "Enter your API token",
                         placeHolder: "Token",
                     });
+                    if (token === undefined) {
+                        vscode.window.showErrorMessage("Token is required");
+                        return;
+                    }
                     await this.context.globalState.update(
                         "sio2.apiSavedUrls",
                         JSON.stringify([{ name, url, token }, ...savedUrls])
@@ -130,12 +132,12 @@ export default class Api {
                     const selectedItem = qp.selectedItems[0];
                     const itemIndex = qpItems.indexOf(selectedItem);
                     this.apiData = savedUrls[itemIndex];
-                    if (this.apiData.token === undefined) {
+                    if (this.apiData.token === "") {
                         const token = await vscode.window.showInputBox({
                             title: "Enter your API token",
                             placeHolder: "Token",
                         });
-                        this.apiData.token = token;
+                        this.apiData.token = token ?? "";
                     }
                     await this.context.globalState.update(
                         "sio2.apiData",
@@ -149,12 +151,13 @@ export default class Api {
                 }
             });
             qp.onDidHide(() => {
-                reject(); // TODO: handle rejected promise in ProblemsView
+                reject("No API selected");
             });
             qp.onDidTriggerItemButton(async (b) => {
                 const index = qp.items.findIndex((v) => v === b.item);
 
                 if (b.button.iconPath === deleteIcon) {
+                    const currentlySelected = JSON.stringify(this.apiData);
                     savedUrls = savedUrls.filter((_, i) => i !== index);
 
                     await this.context.globalState.update(
@@ -162,7 +165,17 @@ export default class Api {
                         JSON.stringify(savedUrls)
                     );
                     qp.items = qp.items.filter((_, i) => i !== index);
+
+                    if (currentlySelected === JSON.stringify(this.apiData)) {
+                        this.apiData = undefined;
+                        await this.context.globalState.update(
+                            "sio2.apiData",
+                            undefined
+                        );
+                        this.onApiUrlUpdate.fire();
+                    }
                 } else {
+                    const oldUrl = { ...savedUrls[index] };
                     const name = await vscode.window.showInputBox({
                         title: "Name your API URL",
                         placeHolder: "Name",
@@ -200,6 +213,18 @@ export default class Api {
                         }
                         return item;
                     });
+
+                    if (
+                        (await this.context.globalState.get("sio2.apiData")) ===
+                        oldUrl
+                    ) {
+                        await this.context.globalState.update(
+                            "sio2.apiData",
+                            JSON.stringify(savedUrls[index])
+                        );
+                        this.apiData = savedUrls[index];
+                        this.onApiUrlUpdate.fire();
+                    }
                 }
             });
             qp.show();
@@ -226,7 +251,7 @@ export default class Api {
     async getContests() {
         const api = await this.getApi();
         const { url, token } = api;
-        if (token === undefined || token === "") {
+        if (token === "") {
             throw new Error(`No token provided for ${url}`);
         }
         const res = await fetch(`${url}/api/contest_list`, {
