@@ -144,9 +144,11 @@ export default class Api {
             qp.onDidTriggerItemButton(async (b) => {
                 const index = qp.items.findIndex((v) => v === b.item);
 
+                savedUrls = savedUrls.filter((_, i) => i !== index);
+
                 await this.context.globalState.update(
                     "sio2.apiSavedUrls",
-                    JSON.stringify(savedUrls.filter((_, i) => i !== index))
+                    JSON.stringify(savedUrls)
                 );
                 qp.items = qp.items.filter((_, i) => i !== index);
             });
