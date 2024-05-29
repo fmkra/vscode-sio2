@@ -27,17 +27,14 @@
         {
           "id": "sio2-problems",
           "name": "Zadania"
-        },
-        {
-          "id": "sio2-submits",
-          "name": "Zgłoszenia"
         }
       ]
     },
     "commands": [
       {
         "command": "sio2.setApiUrl",
-        "title": "SIO2: Change API URL"
+        "title": "SIO2: Change API URL",
+        "icon": "$(gear)"
       },
       {
         "command": "sio2.resetApiUrls",
@@ -46,18 +43,12 @@
       {
         "command": "sio2.openProblemContent",
         "title": "SIO2: Open Problem Content",
-        "icon": {
-          "light": "assets/pdf.svg",
-          "dark": "assets/pdf.svg"
-        }
+        "icon": "$(file-pdf)"
       },
       {
         "command": "sio2.uploadProblemSolution",
         "title": "SIO2: Upload Problem Solution",
-        "icon": {
-          "light": "assets/upload.svg",
-          "dark": "assets/upload.svg"
-        }
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "sio2.refreshContests",
@@ -79,6 +70,11 @@
         },
         {
           "command": "sio2.refreshContests",
+          "when": "view == sio2-problems && viewItem == error",
+          "group": "inline"
+        },
+        {
+          "command": "sio2.setApiUrl",
           "when": "view == sio2-problems && viewItem == error",
           "group": "inline"
         }

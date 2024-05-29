@@ -67,13 +67,14 @@ export default class Api {
         } else {
             savedUrls = JSON.parse(_savedUrls);
         }
+        const editIcon = new vscode.ThemeIcon(`notebook-edit`);
+        const deleteIcon = new vscode.ThemeIcon(`notebook-delete-cell`);
         const buttons = [
             {
-                iconPath: vscode.Uri.joinPath(
-                    this.context.extensionUri,
-                    "assets",
-                    "bin.svg"
-                ),
+                iconPath: editIcon,
+            },
+            {
+                iconPath: deleteIcon,
             },
         ];
         return new Promise<ApiData>((resolve, reject) => {
@@ -102,11 +103,20 @@ export default class Api {
                         title: "Name your API URL",
                         placeHolder: "Name",
                     });
+                    if (name === undefined) {
+                        vscode.window.showErrorMessage("Name is required");
+                        return;
+                    }
                     const url = await vscode.window.showInputBox({
                         title: "Enter a valid API URL",
+                        placeHolder: "URL",
                         value: "https://",
                         valueSelection: [-1, -1],
                     });
+                    if (url === undefined) {
+                        vscode.window.showErrorMessage("URL is required");
+                        return;
+                    }
                     const token = await vscode.window.showInputBox({
                         title: "Enter your API token",
                         placeHolder: "Token",
@@ -144,13 +154,53 @@ export default class Api {
             qp.onDidTriggerItemButton(async (b) => {
                 const index = qp.items.findIndex((v) => v === b.item);
 
-                savedUrls = savedUrls.filter((_, i) => i !== index);
+                if (b.button.iconPath === deleteIcon) {
+                    savedUrls = savedUrls.filter((_, i) => i !== index);
 
-                await this.context.globalState.update(
-                    "sio2.apiSavedUrls",
-                    JSON.stringify(savedUrls)
-                );
-                qp.items = qp.items.filter((_, i) => i !== index);
+                    await this.context.globalState.update(
+                        "sio2.apiSavedUrls",
+                        JSON.stringify(savedUrls)
+                    );
+                    qp.items = qp.items.filter((_, i) => i !== index);
+                } else {
+                    const name = await vscode.window.showInputBox({
+                        title: "Name your API URL",
+                        placeHolder: "Name",
+                        value: savedUrls[index].name,
+                        valueSelection: [0, -1],
+                    });
+                    const url = await vscode.window.showInputBox({
+                        title: "Enter a valid API URL",
+                        placeHolder: "URL",
+                        value: savedUrls[index].url,
+                        valueSelection: [0, -1],
+                    });
+                    const token = await vscode.window.showInputBox({
+                        title: "Enter your API token",
+                        placeHolder: "Token",
+                        value: savedUrls[index].token,
+                        valueSelection: [0, -1],
+                    });
+                    savedUrls[index] = {
+                        name: name ?? savedUrls[index].name,
+                        url: url ?? savedUrls[index].url,
+                        token: token ?? savedUrls[index].token,
+                    };
+                    await this.context.globalState.update(
+                        "sio2.apiSavedUrls",
+                        JSON.stringify(savedUrls)
+                    );
+                    qp.items = qp.items.map((item, i) => {
+                        if (i === index) {
+                            return {
+                                label: savedUrls[i].name,
+                                detail: savedUrls[i].url,
+                                buttons,
+                            };
+                        }
+                        return item;
+                    });
+                }
             });
             qp.show();
         });
