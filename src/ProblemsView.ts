@@ -10,6 +10,7 @@ export interface TreeDataSubProvider<T> {
 // TODO: think of a name
 export class SubmitItem implements TreeDataSubProvider<TreeItem> {
     constructor(
+        readonly id: number,
         readonly problem: ProblemItem,
         readonly date: string,
         readonly score: string | null,
@@ -65,6 +66,7 @@ export class ProblemItem implements TreeDataSubProvider<TreeItem> {
         return submitList.submissions.map(
             (submit) =>
                 new SubmitItem(
+                    submit.id,
                     this,
                     submit.date,
                     submit.score,

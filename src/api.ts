@@ -352,4 +352,21 @@ export default class Api {
             );
         }
     }
+
+    async getProblemCode(contestId: string, submitId: string) {
+        const api = await this.getApi();
+        const res = await fetch(
+            `${api.url}/api/c/${contestId}/problem_submission_code/${submitId}/`,
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Token ${api.token}`,
+                },
+            }
+        );
+        if (res.status !== 200) {
+            throw new Error(`Failed to fetch problems: ${res.statusText}`);
+        }
+        return (await res.json()) as dto.SubmitCode;
+    }
 }

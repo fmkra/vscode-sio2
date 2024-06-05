@@ -54,6 +54,11 @@
         "command": "sio2.refreshContests",
         "title": "SIO2: Refresh Contests",
         "icon": "$(extensions-refresh)"
+      },
+      {
+        "command": "sio2.openSubmitCode",
+        "title": "SIO2: Open Submit Code",
+        "icon": "$(file-code)"
       }
     ],
     "menus": {
@@ -76,6 +81,11 @@
         {
           "command": "sio2.setApiUrl",
           "when": "view == sio2-problems && viewItem == error",
+          "group": "inline"
+        },
+        {
+          "command": "sio2.openSubmitCode",
+          "when": "view == sio2-problems && viewItem == submit",
           "group": "inline"
         }
       ]

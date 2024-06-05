@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import Api from "./api";
 import JSZip from "jszip";
 import { ProblemItem } from "./ProblemsView";
+import { getVariables } from "./utils";
 
 export default class PdfViewer {
     constructor(context: vscode.ExtensionContext, api: Api) {
@@ -11,25 +12,16 @@ export default class PdfViewer {
                 let contestId = context?.contest?.contest?.id;
                 let problemId = context?.problem?.short_name;
 
-                if (!contestId) {
-                    contestId = await vscode.window.showInputBox({
-                        title: "Provide contest id",
-                    });
-                }
-                if (!problemId) {
-                    problemId = await vscode.window.showInputBox({
-                        title: "Provide problem id",
-                    });
-                }
-
-                if (!contestId || !problemId) {
-                    vscode.window.showErrorMessage(
-                        "You must provide contest and problem id"
-                    );
+                const vars = (await getVariables(
+                    [contestId, problemId],
+                    ["Provide contest id", "Provide problem id"]
+                )) as [string, string] | null;
+                if (!vars) {
                     return;
                 }
 
-                const pdfUrl = await api.getProblemUrl(contestId, problemId);
+                const pdfUrl = await api.getProblemUrl(...vars);
+                [contestId, problemId] = vars;
 
                 const panel = vscode.window.createWebviewPanel(
                     problemId,

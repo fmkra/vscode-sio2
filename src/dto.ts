@@ -28,3 +28,8 @@ export interface SubmitsInfo {
     submissions: Submit[];
     is_truncated: boolean;
 }
+
+export interface SubmitCode {
+    lang: string;
+    code: string;
+}
