@@ -175,7 +175,7 @@ export default class Api {
                         this.onApiUrlUpdate.fire();
                     }
                 } else {
-                    const oldUrl = { ...savedUrls[index] };
+                    const oldUrl = JSON.stringify(savedUrls[index]);
                     const name = await vscode.window.showInputBox({
                         title: "Name your API URL",
                         placeHolder: "Name",
