@@ -7,13 +7,14 @@ export interface TreeDataSubProvider<T> {
     getChildren(element?: T): vscode.ProviderResult<T[]>;
     getParent?(element: T): vscode.ProviderResult<T>;
 }
-// TODO: think of a name
+
 export class SubmitItem implements TreeDataSubProvider<TreeItem> {
     constructor(
         readonly id: number,
         readonly problem: ProblemItem,
         readonly date: string,
         readonly score: string | null,
+        readonly status: string,
         readonly extensionUri: vscode.Uri
     ) {}
 
@@ -30,7 +31,11 @@ export class SubmitItem implements TreeDataSubProvider<TreeItem> {
         if (points < 0 || points > 100) {
             points = NaN;
         }
-        const pointsStr = Number.isNaN(points) ? "null" : points.toString();
+        const pointsStr = Number.isNaN(points)
+            ? this.status === "CE"
+                ? "ce"
+                : "null"
+            : points.toString();
         return {
             label: {
                 label: this.date,
@@ -70,6 +75,7 @@ export class ProblemItem implements TreeDataSubProvider<TreeItem> {
                     this,
                     submit.date.replace("T", " ").split(".")[0],
                     submit.score,
+                    submit.status,
                     this.extensionUri
                 )
         );

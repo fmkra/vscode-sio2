@@ -12,7 +12,7 @@ export interface Problem {
     round: number;
     user_result: {
         score: string;
-        status: unknown; // TODO: fix
+        status: unknown; // TODO: proper type
     };
     can_submit: boolean;
     statement_extension: ".zip" | ".pdf" | ".ps" | ".html" | ".txt" | null;
@@ -22,6 +22,7 @@ export interface Submit {
     id: number;
     score: string | null;
     date: string;
+    status: string;
 }
 
 export interface SubmitsInfo {

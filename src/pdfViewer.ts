@@ -123,7 +123,6 @@ function getWebviewContent(getFileData: any, panel: any, extUri: any) {
     panel.webview.options = {
         enableScripts: true,
     };
-    // TODO: fix a problem here with panel.webview.as...
     panel.webview.html = `<!DOCTYPE html>
     <html>
     
