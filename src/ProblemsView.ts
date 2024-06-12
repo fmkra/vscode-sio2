@@ -68,7 +68,7 @@ export class ProblemItem implements TreeDataSubProvider<TreeItem> {
                 new SubmitItem(
                     submit.id,
                     this,
-                    submit.date,
+                    submit.date.replace("T", " ").split(".")[0],
                     submit.score,
                     this.extensionUri
                 )
