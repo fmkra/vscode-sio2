@@ -88,6 +88,12 @@
           "when": "view == sio2-problems && viewItem == submit",
           "group": "inline"
         }
+      ],
+      "view/title": [
+        {
+          "command": "sio2.refreshContests",
+          "group": "navigation"
+        }
       ]
     }
   },
